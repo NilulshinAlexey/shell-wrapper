@@ -36,18 +36,16 @@ int main(){
 			continue;
 		}
 
-		else if (read(0, cmd, 1024) >= 0){
+		else{
+
 			char delim[] = "\n ";
 
 			args[0] = strtok(cmd, delim);
 			int i = 0;
 			
-			for (i = 1; i < 1024 && (args[i] = strtok(cmd, delim)) != NULL; i++);
+			for (i = 1; i < 1024 && (args[i] = strtok(NULL, delim)) != NULL; i++);
 
 			args[i] = NULL;
-			
-			for (int j = 0; j < 1024; j++)
-				printf("%s | ", args[j]);
 
 			if (execvp(args[0], args) == -1){
 				printf("Exec error\n");
