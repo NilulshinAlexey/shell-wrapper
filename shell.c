@@ -6,6 +6,22 @@
 #include <sys/types.h>
 
 
+int parse_cmd(char cmd[1024], char *args[1024]){
+
+	int  seq_size = 1, i = 0;
+	char *delim = "\n ";
+
+	args[0] = strtok(cmd, delim);
+	for (i = 1; i < 1024 && (args[i] = strtok(NULL, delim)) != NULL; i++);
+
+	for (int j = 0; j < i; j++){
+		if (args[j][0] == '|')
+			seq_size++;
+	}
+
+	return seq_size;
+}
+
 int main(){
 
 	while(1){
@@ -17,35 +33,45 @@ int main(){
 
 		if ((size = read(0, cmd, 1024)) == -1){
 			printf("Read error\n");
-			return -1;
+            return -1; 
 		}
 
 		cmd[size] = '\0';
 
-		pid_t pid = fork();
+		int in  = dup(STDIN_FILENO);
+		int out = dup(STDOUT_FILENO);
 
-		if (pid < 0){
-			printf("Fork error, pid = %d\n", pid);
+		int fd[2];
+
+		if (pipe(fd) < 0){
+			printf("Pipe Error\n");
 			return -1;
-		}      
-
-		if (pid){
-			int status;
-			waitpid(pid, &status, 0);
-			printf("Ret code: %d\n", WEXITSTATUS(status));
-			continue;
 		}
 
-		else{
+		int sequence = parse_cmd(cmd, args);
 
-			char delim[] = "\n ";
+		for (int i = i; i < sequence; i++){ 
 
-			args[0] = strtok(cmd, delim);
-			int i = 0;
-			
-			for (i = 1; i < 1024 && (args[i] = strtok(NULL, delim)) != NULL; i++);
+			pid_t pid = fork();
 
-			args[i] = NULL;
+			if (pid < 0){
+				printf("Fork error, pid = %d\n", pid);
+				return -1;
+			}      
+
+			if (pid){
+				int status;
+				waitpid(pid, &status, 0);
+
+				dup2 (in, STDIN_FILENO);
+				dup2 (out, STDOUT_FILENO);
+
+				printf("Ret code: %d\n", WEXITSTATUS(status));
+				continue;
+			}
+
+			dup2 (fd[0], STDIN_FILENO);
+			dup2 (fd[1], STDIN_FILENO);
 
 			if (execvp(args[0], args) == -1){
 				printf("Exec error\n");
@@ -53,4 +79,6 @@ int main(){
 			}
 		}
 	}
+
+	return 0;
 }
