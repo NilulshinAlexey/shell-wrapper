@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
+int cmd_tok[1024] = {0};
 
 int parse_cmd(char cmd[1024], char *args[1024]){
 
@@ -13,6 +14,8 @@ int parse_cmd(char cmd[1024], char *args[1024]){
 
 	args[0] = strtok(cmd, delim);
 	for (i = 1; i < 1024 && (args[i] = strtok(NULL, delim)) != NULL; i++);
+	
+	args[i] = NULL;
 
 	for (int j = 0; j < i; j++){
 		if (args[j][0] == '|')
@@ -49,6 +52,7 @@ int main(){
 		}
 
 		int sequence = parse_cmd(cmd, args);
+		printf("seq_size: %d\n", sequence);
 
 		for (int i = i; i < sequence; i++){ 
 
