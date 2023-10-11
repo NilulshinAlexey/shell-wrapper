@@ -18,11 +18,14 @@ int parse_cmd(char *cmd, char **args){
 	args[i] = NULL;
 
 	for (int j = 0; j < i; j++){
-		if (args[j][0] == '|')
+		if (args[j][0] == '|'){
 			cmd_tok[++seq_size] = j + 1;
+			args[j] == NULL;
+		}
 	}
-
-	return ++seq_size;
+	
+	cmd_tok[++seq_size] = -1; 
+	return seq_size;
 }
 
 int main(){
@@ -41,8 +44,8 @@ int main(){
 
 		cmd[size] = '\0';
 
-		int in  = dup(STDIN_FILENO);
-		int out = dup(STDOUT_FILENO);
+		//int in  = dup(STDIN_FILENO);
+		//int out = dup(STDOUT_FILENO);
 
 		int fd[2];
 
@@ -52,7 +55,7 @@ int main(){
 		}
 
 		int sequence = parse_cmd(cmd, args);
-		printf("seq_size: %d\n", sequence);
+		printf("%s %s %s\n", args[0], args[1], args[2]);
 
 		for (int i = 0; i < sequence; i++){ 
 
@@ -67,17 +70,17 @@ int main(){
 				int status;
 				waitpid(pid, &status, 0);
 
-				dup2 (in, STDIN_FILENO);
-				dup2 (out, STDOUT_FILENO);
+				//dup2 (in, STDIN_FILENO);
+				//dup2 (out, STDOUT_FILENO);
 
 				printf("Ret code: %d\n", WEXITSTATUS(status));
 				continue;
 			}
 			
-			if(cmd_tok[i]   != -1) dup2 (fd[0], STDIN_FILENO);
-			if(cmd_tok[i+1] != -1) dup2 (fd[1], STDIN_FILENO);
+			//if(cmd_tok[i]   != -1) dup2 (fd[0], STDIN_FILENO);
+			//if(cmd_tok[i+1] != -1) dup2 (fd[1], STDIN_FILENO);
 
-			if (execvp(args[cmd_tok[i] == -1 ? 0 : cmd_tok[i] + 1], args + (cmd_tok[i] == -1 ? 0 : cmd_tok[i])) == -1){
+			if (execvp(args[cmd_tok[i] == -1 ? 0 : cmd_tok[i]], args + (cmd_tok[i] == -1 ? 0 : cmd_tok[i])) == -1){
 				printf("Exec error\n");
 				return -1;
 			}
