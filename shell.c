@@ -78,7 +78,7 @@ int main(){
 			}
 			
 			if(cmd_tok[i]   != -1) dup2 (fd[0], STDIN_FILENO);
-			if(cmd_tok[i+1] != -1) dup2 (fd[1], STDIN_FILENO);
+			if(cmd_tok[i+1] != -1) dup2 (fd[1], STDOUT_FILENO);
 
 			if (execvp(args[cmd_tok[i] == -1 ? 0 : cmd_tok[i]], args + (cmd_tok[i] == -1 ? 0 : cmd_tok[i])) == -1){
 				printf("Exec error\n");
