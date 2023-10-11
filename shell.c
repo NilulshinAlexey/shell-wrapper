@@ -5,11 +5,11 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
-int cmd_tok[1024] = {0};
+int cmd_tok[1024] = {-1};
 
-int parse_cmd(char cmd[1024], char *args[1024]){
+int parse_cmd(char *cmd, char **args){
 
-	int  seq_size = 1, i = 0;
+	int  seq_size = 0, i = 0;
 	char *delim = "\n ";
 
 	args[0] = strtok(cmd, delim);
@@ -19,10 +19,10 @@ int parse_cmd(char cmd[1024], char *args[1024]){
 
 	for (int j = 0; j < i; j++){
 		if (args[j][0] == '|')
-			seq_size++;
+			cmd_tok[++seq_size] = j + 1;
 	}
 
-	return seq_size;
+	return ++seq_size;
 }
 
 int main(){
@@ -54,7 +54,7 @@ int main(){
 		int sequence = parse_cmd(cmd, args);
 		printf("seq_size: %d\n", sequence);
 
-		for (int i = i; i < sequence; i++){ 
+		for (int i = 0; i < sequence; i++){ 
 
 			pid_t pid = fork();
 
@@ -73,11 +73,11 @@ int main(){
 				printf("Ret code: %d\n", WEXITSTATUS(status));
 				continue;
 			}
+			
+			if(cmd_tok[i]   != -1) dup2 (fd[0], STDIN_FILENO);
+			if(cmd_tok[i+1] != -1) dup2 (fd[1], STDIN_FILENO);
 
-			dup2 (fd[0], STDIN_FILENO);
-			dup2 (fd[1], STDIN_FILENO);
-
-			if (execvp(args[0], args) == -1){
+			if (execvp(args[cmd_tok[i] == -1 ? 0 : cmd_tok[i] + 1], args + (cmd_tok[i] == -1 ? 0 : cmd_tok[i])) == -1){
 				printf("Exec error\n");
 				return -1;
 			}
