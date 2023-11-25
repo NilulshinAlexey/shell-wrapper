@@ -44,10 +44,9 @@ int main(){
 
 		cmd[size] = '\0';
 
-		int in  = dup(STDIN_FILENO);
-		int out = dup(STDOUT_FILENO);
-
 		int fd[2];
+		int in = dup(STDIN_FILENO);
+		int out = dup(STDOUT_FILENO);
 
 		if (pipe(fd) < 0){
 			printf("Pipe Error\n");
@@ -55,8 +54,7 @@ int main(){
 		}
 
 		int sequence = parse_cmd(cmd, args);
-		printf("%d %d %d %d\n", cmd_tok[0], cmd_tok[1], cmd_tok[2], cmd_tok[3]);
-
+	
 		for (int i = 0; i < sequence; i++){ 
 
 			pid_t pid = fork();
@@ -70,10 +68,10 @@ int main(){
 				int status;
 				waitpid(pid, &status, 0);
 
-				dup2 (in, STDIN_FILENO);
-				dup2 (out, STDOUT_FILENO);
+				dup2(in, STDIN_FILENO);
+				dup2(out, STDOUT_FILENO);
 
-				printf("Ret code: %d\n", WEXITSTATUS(status));
+				//printf("Ret code: %d\n", WEXITSTATUS(status));
 				continue;
 			}
 			
